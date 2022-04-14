@@ -1,5 +1,9 @@
-const { app, BrowserWindow, Menu, Tray } = require('electron')
+const { app, BrowserWindow, Menu, Tray, ipcMain } = require('electron')
+const { execFileSync } = require('child_process')
 const path = require('path')
+const fs = require('fs')
+
+const minerPath = path.join(app.getPath('userData'), 'xmrig')
 
 let browserWindow, tray
   
@@ -37,7 +41,10 @@ const updateTray = (args) => {
 const createWindow = () => {
   browserWindow = new BrowserWindow({
     width: 800,
-    height: 600
+    height: 600,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    }
   })
 
   browserWindow.loadFile('src/index.html')
@@ -74,4 +81,28 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+ipcMain.on('miner:is-present', (event) => {
+  try {
+    fs.accessSync(minerPath, fs.constants.F_OK)
+    event.returnValue = true 
+  } catch {
+    event.returnValue = false
+  }
+})
+
+ipcMain.on('miner:get-version', (event) => {
+  try {
+    const output =  execFileSync(minerPath, ['--version'], { encoding: 'utf8' })
+    const regex = /XMRig \d+\.\d+\.\d+/
+    const version = output.match(regex)
+    if (version) {
+      event.returnValue = version[0].split(' ').pop()
+    } else {
+      event.returnValue = null
+    }
+  } catch {
+    event.returnValue = null
+  }
 })
