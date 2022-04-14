@@ -1,0 +1,14 @@
+{
+    "name": "Patronero",
+    "version": "1.0.0",
+    "description": "App for donating by Monero mining",
+    "main": "main.js",
+    "author": "moneroist",
+    "license": "GPL-3.0-only",
+    "devDependencies": {
+        "electron": "^18.0.3"
+    },
+    "scripts": {
+        "start": "electron ."
+      }
+}
