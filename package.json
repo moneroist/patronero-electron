@@ -13,5 +13,8 @@
         "start": "electron .",
         "pack": "electron-builder --dir",
         "dist": "electron-builder"
+    },
+    "dependencies": {
+        "axios": "^0.26.1"
     }
 }

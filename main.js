@@ -2,8 +2,10 @@ const { app, BrowserWindow, Menu, Tray, ipcMain } = require('electron')
 const { execFileSync } = require('child_process')
 const path = require('path')
 const fs = require('fs')
+const axios = require('axios');
 
 const minerPath = path.join(app.getPath('userData'), 'xmrig')
+const latestMinerVersionUrl = 'https://api.github.com/repos/xmrig/xmrig/releases/latest'
 
 let browserWindow, tray
   
@@ -105,4 +107,20 @@ ipcMain.on('miner:get-version', (event) => {
   } catch {
     event.returnValue = null
   }
+})
+
+ipcMain.on('miner:get-latest-version', (event) => {
+  axios.get(latestMinerVersionUrl).then((response) => { 
+    try {
+      const regex = /\d+\.\d+\.\d+/
+      const latestVersion = response.data.tag_name.match(regex)
+      if (latestVersion) {
+        event.returnValue = latestVersion[0]
+      } else {
+        event.returnValue = null
+      }
+    } catch {
+      event.returnValue = null
+    }
+  })
 })
