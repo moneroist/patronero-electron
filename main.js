@@ -24,12 +24,12 @@ const trayContextMenuTemplate = [
 
 const createTray = () => {
   tray = new Tray('logo.png')
-  const trayContextMenu = Menu.buildFromTemplate(trayContextMenuTemplate)
+  let trayContextMenu = Menu.buildFromTemplate(trayContextMenuTemplate)
   tray.setContextMenu(trayContextMenu)
 }
 
 const updateTray = (args) => {
-  const { visible } = args
+  let { visible } = args
 
   if (visible != null) {
     if (visible) {
@@ -39,7 +39,7 @@ const updateTray = (args) => {
     }
   }
 
-  const trayContextMenu = Menu.buildFromTemplate(trayContextMenuTemplate)
+  let trayContextMenu = Menu.buildFromTemplate(trayContextMenuTemplate)
   tray.setContextMenu(trayContextMenu)
 }
 
@@ -99,9 +99,9 @@ ipcMain.on('miner:is-present', (event) => {
 
 ipcMain.on('miner:get-version', (event) => {
   try {
-    const output =  execFileSync(MINER_PATH, ['--version'], { encoding: 'utf8' })
-    const regex = /XMRig \d+\.\d+\.\d+/
-    const version = output.match(regex)
+    let output =  execFileSync(MINER_PATH, ['--version'], { encoding: 'utf8' })
+    let regex = /XMRig \d+\.\d+\.\d+/
+    let version = output.match(regex)
     if (version) {
       event.returnValue = version[0].split(' ').pop()
     } else {
@@ -115,8 +115,8 @@ ipcMain.on('miner:get-version', (event) => {
 ipcMain.on('miner:get-latest-version', (event) => {
   axios.get(LATEST_MINER_VERSION_URL).then((response) => { 
     try {
-      const regex = /\d+\.\d+\.\d+/
-      const latestVersion = response.data.tag_name.match(regex)
+      let regex = /\d+\.\d+\.\d+/
+      let latestVersion = response.data.tag_name.match(regex)
       if (latestVersion) {
         event.returnValue = latestVersion[0]
       } else {
@@ -136,7 +136,7 @@ ipcMain.on('miner:download', (event) => {
   try {
     axios.get(LATEST_MINER_VERSION_URL).then((response) => {
       let downloadUrl
-      const assets = response.data.assets
+      let assets = response.data.assets
       switch (process.platform) {
         case 'linux':
           downloadUrl =  findDownloadUrlByPlatform(assets, 'linux-x64')
@@ -153,10 +153,10 @@ ipcMain.on('miner:download', (event) => {
       }
 
       download(downloadUrl, USER_DATA_PATH).then(() => {
-        const tarFileName = downloadUrl.split('/').pop()
-        const tarFilePath = path.join(USER_DATA_PATH, tarFileName)
+        let tarFileName = downloadUrl.split('/').pop()
+        let tarFilePath = path.join(USER_DATA_PATH, tarFileName)
         tar.extract({ file: tarFilePath, cwd: USER_DATA_PATH }, null, () => {
-          const extractedFolderName = tarFileName.split('-').slice(0, 2).join('-')          
+          let extractedFolderName = tarFileName.split('-').slice(0, 2).join('-')          
           fs.rename(path.join(USER_DATA_PATH, extractedFolderName, 'xmrig'), path.join(USER_DATA_PATH, 'xmrig'), function (error) {
             if (error) {
                 throw error
