@@ -7,7 +7,7 @@ const download = require('download')
 const tar = require('tar')
 
 const USER_DATA_PATH = app.getPath('userData')
-const minerPath = path.join(USER_DATA_PATH, 'xmrig')
+const MINER_PATH = path.join(USER_DATA_PATH, 'xmrig')
 const latestMinerVersionUrl = 'https://api.github.com/repos/xmrig/xmrig/releases/latest'
 
 let browserWindow, tray
@@ -90,7 +90,7 @@ app.on('window-all-closed', () => {
 
 ipcMain.on('miner:is-present', (event) => {
   try {
-    fs.accessSync(minerPath, fs.constants.F_OK)
+    fs.accessSync(MINER_PATH, fs.constants.F_OK)
     event.returnValue = true 
   } catch {
     event.returnValue = false
@@ -99,7 +99,7 @@ ipcMain.on('miner:is-present', (event) => {
 
 ipcMain.on('miner:get-version', (event) => {
   try {
-    const output =  execFileSync(minerPath, ['--version'], { encoding: 'utf8' })
+    const output =  execFileSync(MINER_PATH, ['--version'], { encoding: 'utf8' })
     const regex = /XMRig \d+\.\d+\.\d+/
     const version = output.match(regex)
     if (version) {
