@@ -6,7 +6,8 @@ const axios = require('axios')
 const download = require('download')
 const tar = require('tar')
 
-const minerPath = path.join(app.getPath('userData'), 'xmrig')
+const USER_DATA_PATH = app.getPath('userData')
+const minerPath = path.join(USER_DATA_PATH, 'xmrig')
 const latestMinerVersionUrl = 'https://api.github.com/repos/xmrig/xmrig/releases/latest'
 
 let browserWindow, tray
@@ -151,17 +152,17 @@ ipcMain.on('miner:download', (event) => {
           return
       }
 
-      download(downloadUrl, app.getPath('userData')).then(() => {
+      download(downloadUrl, USER_DATA_PATH).then(() => {
         const tarFileName = downloadUrl.split('/').pop()
-        const tarFilePath = path.join(app.getPath('userData'), tarFileName)
-        tar.extract({ file: tarFilePath, cwd: app.getPath('userData') }, null, () => {
+        const tarFilePath = path.join(USER_DATA_PATH, tarFileName)
+        tar.extract({ file: tarFilePath, cwd: USER_DATA_PATH }, null, () => {
           const extractedFolderName = tarFileName.split('-').slice(0, 2).join('-')          
-          fs.rename(path.join(app.getPath('userData'), extractedFolderName, 'xmrig'), path.join(app.getPath('userData'), 'xmrig'), function (error) {
+          fs.rename(path.join(USER_DATA_PATH, extractedFolderName, 'xmrig'), path.join(USER_DATA_PATH, 'xmrig'), function (error) {
             if (error) {
                 throw error
             } else {
-              fs.rmSync(path.join(app.getPath('userData'), extractedFolderName), { recursive: true, force: true });
-              fs.rmSync(path.join(app.getPath('userData'), tarFileName))
+              fs.rmSync(path.join(USER_DATA_PATH, extractedFolderName), { recursive: true, force: true });
+              fs.rmSync(path.join(USER_DATA_PATH, tarFileName))
               event.reply('miner:download', true)
             }
         });
