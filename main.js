@@ -88,44 +88,52 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-ipcMain.on('miner:is-present', (event) => {
+const isMinerPresent = () => {
   try {
     fs.accessSync(MINER_PATH, fs.constants.F_OK)
-    event.returnValue = true 
+    return true 
   } catch {
-    event.returnValue = false
+    return false
   }
-})
+}
 
-ipcMain.on('miner:get-version', (event) => {
+const getCurrentMinerVersion = () => {
   try {
     let output =  execFileSync(MINER_PATH, ['--version'], { encoding: 'utf8' })
     let regex = /XMRig \d+\.\d+\.\d+/
     let version = output.match(regex)
     if (version) {
-      event.returnValue = version[0].split(' ').pop()
+      return version[0].split(' ').pop()
     } else {
-      event.returnValue = null
+      return null
     }
   } catch {
-    event.returnValue = null
+    return null
   }
-})
+}
 
-ipcMain.on('miner:get-latest-version', (event) => {
-  axios.get(LATEST_MINER_VERSION_URL).then((response) => { 
+const getLatestMinerVersion = async () => {
+  return await axios.get(LATEST_MINER_VERSION_URL).then((response) => { 
     try {
       let regex = /\d+\.\d+\.\d+/
       let latestVersion = response.data.tag_name.match(regex)
       if (latestVersion) {
-        event.returnValue = latestVersion[0]
+        return latestVersion[0]
       } else {
-        event.returnValue = null
+        return null
       }
     } catch {
-      event.returnValue = null
+     return null
     }
   })
+}
+
+ipcMain.on('miner:get-metadata', async (event) => {
+  event.reply('miner:get-metadata', {
+    isMinerPresent: isMinerPresent(),
+    currentMinerVersion: getCurrentMinerVersion(),
+    latestMinerVersion: await getLatestMinerVersion()
+  })  
 })
 
 ipcMain.on('miner:download', (event) => {
