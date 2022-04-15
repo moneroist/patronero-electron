@@ -8,7 +8,7 @@ const tar = require('tar')
 
 const USER_DATA_PATH = app.getPath('userData')
 const MINER_PATH = path.join(USER_DATA_PATH, 'xmrig')
-const latestMinerVersionUrl = 'https://api.github.com/repos/xmrig/xmrig/releases/latest'
+const LATEST_MINER_VERSION_URL = 'https://api.github.com/repos/xmrig/xmrig/releases/latest'
 
 let browserWindow, tray
   
@@ -113,7 +113,7 @@ ipcMain.on('miner:get-version', (event) => {
 })
 
 ipcMain.on('miner:get-latest-version', (event) => {
-  axios.get(latestMinerVersionUrl).then((response) => { 
+  axios.get(LATEST_MINER_VERSION_URL).then((response) => { 
     try {
       const regex = /\d+\.\d+\.\d+/
       const latestVersion = response.data.tag_name.match(regex)
@@ -134,7 +134,7 @@ ipcMain.on('miner:download', (event) => {
   }
 
   try {
-    axios.get(latestMinerVersionUrl).then((response) => {
+    axios.get(LATEST_MINER_VERSION_URL).then((response) => {
       let downloadUrl
       const assets = response.data.assets
       switch (process.platform) {
