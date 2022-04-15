@@ -2,7 +2,9 @@ const { app, BrowserWindow, Menu, Tray, ipcMain } = require('electron')
 const { execFileSync } = require('child_process')
 const path = require('path')
 const fs = require('fs')
-const axios = require('axios');
+const axios = require('axios')
+const download = require('download')
+const tar = require('tar')
 
 const minerPath = path.join(app.getPath('userData'), 'xmrig')
 const latestMinerVersionUrl = 'https://api.github.com/repos/xmrig/xmrig/releases/latest'
@@ -123,4 +125,50 @@ ipcMain.on('miner:get-latest-version', (event) => {
       event.returnValue = null
     }
   })
+})
+
+ipcMain.on('miner:download', (event) => {
+  const findDownloadUrlByPlatform = (assets, platform) => {
+    return assets.find((asset) => { return asset.name.includes(platform) } ).browser_download_url
+  }
+
+  try {
+    axios.get(latestMinerVersionUrl).then((response) => {
+      let downloadUrl
+      const assets = response.data.assets
+      switch (process.platform) {
+        case 'linux':
+          downloadUrl =  findDownloadUrlByPlatform(assets, 'linux-x64')
+          break
+        case 'win32':
+          downloadUrl = findDownloadUrlByPlatform(assets, 'gcc-win64')
+          break
+        case 'darwin':
+          downloadUrl = findDownloadUrlByPlatform(assets, 'macos-x64')
+          break
+        defualt:
+          event.reply('miner:download', false)
+          return
+      }
+
+      download(downloadUrl, app.getPath('userData')).then(() => {
+        const tarFileName = downloadUrl.split('/').pop()
+        const tarFilePath = path.join(app.getPath('userData'), tarFileName)
+        tar.extract({ file: tarFilePath, cwd: app.getPath('userData') }, null, () => {
+          const extractedFolderName = tarFileName.split('-').slice(0, 2).join('-')          
+          fs.rename(path.join(app.getPath('userData'), extractedFolderName, 'xmrig'), path.join(app.getPath('userData'), 'xmrig'), function (error) {
+            if (error) {
+                throw error
+            } else {
+              fs.rmSync(path.join(app.getPath('userData'), extractedFolderName), { recursive: true, force: true });
+              fs.rmSync(path.join(app.getPath('userData'), tarFileName))
+              event.reply('miner:download', true)
+            }
+        });
+        })
+      });
+    })
+  } catch {
+    event.reply('miner:download', false)
+  }
 })
