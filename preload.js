@@ -1,11 +1,14 @@
 const { app, contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld(
-    'miner',
-    {
-        isPresent() { return ipcRenderer.sendSync('miner:is-present') },
-        getVersion() { return ipcRenderer.sendSync('miner:get-version') },
-        getLatestVersion() { return ipcRenderer.sendSync('miner:get-latest-version') },
+    'miner', {
+        getMetadata() { return ipcRenderer.send('miner:get-metadata') },
         download() { return ipcRenderer.send('miner:download') }
+    }
+)
+
+contextBridge.exposeInMainWorld(
+    'ipcRenderer', {
+       on: (event, callback) => { ipcRenderer.on(event, callback) }
     }
 )
